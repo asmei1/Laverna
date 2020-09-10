@@ -1,4 +1,5 @@
 from clang.cindex import *
+import difflib
 
 
 class Analyzer:
@@ -31,8 +32,16 @@ class Analyzer:
 
         return array_operators
 
+    def find_structers(self, parse_unit):
+        array_operators = []
+        for c in self.__filter_parse_unit_cursor_list__(parse_unit.filtered_cursors, lambda cur: cur.kind is CursorKind.STRUCT_DECL):
+            array_operators.append((c.location.file, c.location.line, c.displayname))
+
+        return array_operators
+
     def find_global_variables(self, parse_unit):
-        """If variable is on 'first level' of cursors, it should be a global variable. """
+        # If variable is on 'first level' of cursors, it should be a global variable.
+
         global_variables_list = []
         for n in parse_unit.filtered_cursors:
             if n.kind is CursorKind.VAR_DECL:
@@ -40,14 +49,35 @@ class Analyzer:
 
         return global_variables_list
 
-    #not working
     def get_comments(self, parse_unit):
+        # not working
         commnents = []
         for c in self.__filter_parse_unit_cursor_list__(parse_unit.filtered_cursors, lambda cur: True):
             if not c.raw_comment:
                 commnents.append(c.raw_comment)
                 commnents.append(c.brief_comment)
         return commnents
+
+    def compute_similarity_ratio(self, parse_unit_a, parse_unit_b):
+        # A = ' '.join(str(node)[11:] for node in parse_unit_a.get_cursors_kind())
+        # B = ' '.join(str(node)[11:] for node in parse_unit_b.get_cursors_kind())
+        # return difflib.SequenceMatcher(a=A, b=B).ratio()
+
+        # A = ' '.join(str(node.value) for node in parse_unit_a.get_cursors_kind())
+        # B = ' '.join(str(node.value) for node in parse_unit_b.get_cursors_kind())
+        # return difflib.SequenceMatcher(a=A, b=B).ratio()
+        a_kinds = parse_unit_a.get_cursors_kind()
+        b_kinds = parse_unit_b.get_cursors_kind()
+
+        filterFunction = lambda node: node is not (CursorKind.STRUCT_DECL or CursorKind.FIELD_DECL or CursorKind.VAR_DECL or CursorKind.FUNCTION_DECL or CursorKind.TYPEDEF_DECLor or CursorKind.MACRO_DEFINITION )
+
+        a_kinds = list(filter(filterFunction, a_kinds))
+        b_kinds = list(filter(filterFunction, b_kinds))
+
+        return difflib.SequenceMatcher(a=a_kinds, b=b_kinds).ratio()
+
+
+
 '''
     log_file = open('dump.txt', 'w')
     for c in filter_cursor:

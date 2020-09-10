@@ -4,8 +4,14 @@
 int hide_variable = 123;
 #endif
 
+struct DupaStrcut{
+    int a;
+    double b;
+};
+
+#define Def  123
 //This is global variable
-int globalna = 5;
+int globalna = Def;
 
 /*!
 *asdasdasdsada
@@ -15,8 +21,10 @@ int main(int argc, char** argv)
     //int a = 5 + 10;
 	int * a = (int*)malloc(2 * sizeof(int));
 
-    int c = a[1];
-	int b = *(a + 1);
     //printf("Hello world");
     return 0;
 }
+
+
+
+//////
