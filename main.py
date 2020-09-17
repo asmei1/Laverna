@@ -29,25 +29,31 @@ def compute_similarity_score(file_a, file_b):
 def compute_ab_and_ba_sim(title, file_a, file_b):
     ab = compute_similarity_score(file_a, file_b)
     ba = compute_similarity_score(file_b, file_a)
-    print(title, "AB", ab, "BA", ba)
+    print(title, "MAX", ab if ab > ba else ba, "AB", ab, "BA", ba)
 
-parse_unit_a = parser.ParseUnit("examples/main.c")
-parse_unit_a.parse()
-
-print(parse_unit_a.dump())
-
+#
 compute_ab_and_ba_sim("Example 1:", "examples/plagiarisms/1/1.c", "examples/plagiarisms/1/1p.c")
-# compute_ab_and_ba_sim("Example 2:", "examples/plagiarisms/2/2.c", "examples/plagiarisms/2/2b.c")
-# compute_ab_and_ba_sim("Example 3:", "examples/plagiarisms/3/3.c", "examples/plagiarisms/3/3b.c")
-# compute_ab_and_ba_sim("Example 4:", "examples/plagiarisms/4/4.c", "examples/plagiarisms/4/4b.c")
-# compute_ab_and_ba_sim("Example 5:", "examples/plagiarisms/5/5.c", "examples/plagiarisms/5/B/main.c")
-# compute_ab_and_ba_sim("Example 6:", "examples/plagiarisms/6/6.c", "examples/plagiarisms/6/6b.c")
-# compute_ab_and_ba_sim("Example 7:", "examples/plagiarisms/7/7.c", "examples/plagiarisms/7/B/main.c")
-# compute_ab_and_ba_sim("Example 8:", "examples/plagiarisms/8/8.c", "examples/plagiarisms/8/8b.c")
-# compute_ab_and_ba_sim("Example 9:", "examples/plagiarisms/9/A/6.29.c", "examples/plagiarisms/9/B/6.29.c")
-# compute_ab_and_ba_sim("Example 10:", "examples/plagiarisms/10/10.c", "examples/plagiarisms/10/B/main.c")
-# compute_ab_and_ba_sim("Example 11:", "examples/plagiarisms/11/11.c", "examples/plagiarisms/11/11b.c")
+compute_ab_and_ba_sim("Example 2:", "examples/plagiarisms/2/2.c", "examples/plagiarisms/2/2b.c")
+compute_ab_and_ba_sim("Example 3:", "examples/plagiarisms/3/3.c", "examples/plagiarisms/3/3b.c")
+compute_ab_and_ba_sim("Example 4:", "examples/plagiarisms/4/4.c", "examples/plagiarisms/4/4b.c")
+compute_ab_and_ba_sim("Example 5:", "examples/plagiarisms/5/5.c", "examples/plagiarisms/5/B/main.c")
+compute_ab_and_ba_sim("Example 6:", "examples/plagiarisms/6/6.c", "examples/plagiarisms/6/6b.c")
+compute_ab_and_ba_sim("Example 7:", "examples/plagiarisms/7/7.c", "examples/plagiarisms/7/B/main.c") # this are different exercises
+compute_ab_and_ba_sim("Example 8:", "examples/plagiarisms/8/8.c", "examples/plagiarisms/8/8b.c")
+compute_ab_and_ba_sim("Example 9:", "examples/plagiarisms/9/A/6.29.c", "examples/plagiarisms/9/B/6.29.c")
+compute_ab_and_ba_sim("Example 10:", "examples/plagiarisms/10/10.c", "examples/plagiarisms/10/B/main.c")
+compute_ab_and_ba_sim("Example 11:", "examples/plagiarisms/11/11.c", "examples/plagiarisms/11/11b.c")
 
+# #Doing
+# Decl with initialization versus assign after def
+# compute_ab_and_ba_sim("Example 4:", "examples/plagiarisms/4/4.c", "examples/plagiarisms/4/4b.c")
+# Invalid order can hurt
+# compute_ab_and_ba_sim("Example 11:", "examples/plagiarisms/11/11b.c", "examples/plagiarisms/11/11.c")
+
+
+# #Done
+# Skip standard library, parsing only given file
+# compute_ab_and_ba_sim("Example 3:", "examples/plagiarisms/3/3.c", "examples/plagiarisms/3/3b.c")
 
 
 '''

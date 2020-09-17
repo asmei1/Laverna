@@ -1,7 +1,7 @@
 from clang.cindex import *
 
 standard_library = ('stdio.h', 'stdlib.h', 'corecrt.h', 'string.h', 'sal.h', 'concurrencysal.h',
-                    'corecrt_malloc.h', 'vcruntime.h', 'ctype.h', 'math.h', 'corecrt_wstdio.h',
+                    'corecrt_malloc.h', 'vcruntime.h', 'ctype.h', 'math.h', 'corecrt_wstdio.h', 'corecrt_memcpy_s.h',
                     'corecrt_stdio_config.h', 'corecrt_malloc.h', 'corecrt_wstdlib.h', 'limits.h',
                     'corecrt_memory.h', 'errno.h', 'vcruntime_string.h', 'corecrt_wstring.h',
                     'corecrt_wctype.h', 'corecrt_math.h',
@@ -38,30 +38,35 @@ class ParseUnit:
             return False
 
         # print('Translation unit:', self.tu.spelling)
+        # for c in self.tu.cursor.get_children():
+        #     if not c.location.file.name.endswith(standard_library):
+        #         self.filt_curs.append(c)
+        #
         for c in self.tu.cursor.get_children():
-            if not c.location.file.name.endswith(standard_library):
+            if c.location.file.name.endswith(self.filename): #TODO check only filename, not whole path
                 self.filt_curs.append(c)
 
         return True
 
     def __dump_cursor_kind__(self, cursor, depth=0):
-        #print('--' * depth, 'Line:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
-        print(cursor.kind )
+        # print('--' * depth, 'Line:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
+        print(cursor.kind)
         for c in cursor.get_children():
             self.__dump_cursor_kind__(c, depth + 1)
 
     def __gather_cursor_kind__(self, cursor, depth=0):
-        # print('--' * depth, 'Line:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
+        # print('-' * depth, 'L:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
+        # print('-' * depth, cursor.kind, 'name:', cursor.displayname, )
         retVal = [cursor.kind]
         for c in cursor.get_children():
             retVal += self.__gather_cursor_kind__(c, depth + 1)
         return retVal
 
     def __dump_cursor__(self, cursor, depth=0):
-        print('--' * depth, 'Line:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
-        #print(cursor.kind )
-        for c in cursor.get_children():
-            self.__dump_cursor__(c, depth + 1)
+        print('-' * depth, 'L:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
+        # print(cursor.kind )
+        # for c in cursor.get_children():
+        #     self.__dump_cursor__(c, depth + 1)
 
     def dump(self):
         # Dump dumped cursors. It's not whole AST tree, only simplified tree.
@@ -79,6 +84,21 @@ class ParseUnit:
             retVal += self.__gather_cursor_kind__(c)
         return retVal
 
+    def get_prepared_cursors_kind(self):
+        retVal = []
+
+        pre_filtered_main_cursors = [node for node in self.filtered_cursors if node.kind  in {CursorKind.FUNCTION_DECL, CursorKind.STRUCT_DECL} and node.is_definition()]
+        pre_filtered_main_cursors.sort(key=lambda c: c.displayname)
+
+        for c in pre_filtered_main_cursors:
+            # print(c.displayname)
+            retVal += self.__gather_cursor_kind__(c)
+
+
+
+        #testing
+        return list(filter(lambda kind:kind not in {CursorKind.STRING_LITERAL, CursorKind.INTEGER_LITERAL}, retVal ))
+        # return retVal
 
     def get_all_additional_includes(self):
         # Return array with tuples(depth and absolute path) with includes from current parse unit.

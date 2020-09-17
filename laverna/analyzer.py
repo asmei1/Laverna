@@ -66,15 +66,26 @@ class Analyzer:
         # A = ' '.join(str(node.value) for node in parse_unit_a.get_cursors_kind())
         # B = ' '.join(str(node.value) for node in parse_unit_b.get_cursors_kind())
         # return difflib.SequenceMatcher(a=A, b=B).ratio()
-        a_kinds = parse_unit_a.get_cursors_kind()
-        b_kinds = parse_unit_b.get_cursors_kind()
+        a_kinds = parse_unit_a.get_prepared_cursors_kind()
+        b_kinds = parse_unit_b.get_prepared_cursors_kind()
+        #
+        # print("Dump A")
+        # parse_unit_a.dump()
+        # print("Dump B")
+        # parse_unit_b.dump()
+        # filterFunction = lambda node: node is not (CursorKind.STRUCT_DECL or CursorKind.FIELD_DECL or CursorKind.VAR_DECL or CursorKind.FUNCTION_DECL or CursorKind.TYPEDEF_DECL or CursorKind.MACRO_DEFINITION )
 
-        filterFunction = lambda node: node is not (CursorKind.STRUCT_DECL or CursorKind.FIELD_DECL or CursorKind.VAR_DECL or CursorKind.FUNCTION_DECL or CursorKind.TYPEDEF_DECLor or CursorKind.MACRO_DEFINITION )
-
-        a_kinds = list(filter(filterFunction, a_kinds))
-        b_kinds = list(filter(filterFunction, b_kinds))
+        # a_kinds = list(filter(filterFunction, a_kinds))
+        # b_kinds = list(filter(filterFunction, b_kinds))
 
         return difflib.SequenceMatcher(a=a_kinds, b=b_kinds).ratio()
+
+        # return None
+        # filterFunction = lambda node: node is not (CursorKind.STRUCT_DECL or CursorKind.FIELD_DECL or CursorKind.VAR_DECL or CursorKind.FUNCTION_DECL or CursorKind.TYPEDEF_DECLor or CursorKind.MACRO_DEFINITION )
+        #
+        # a_kinds = list(filter(filterFunction, a_kinds))
+        # b_kinds = list(filter(filterFunction, b_kinds))
+        # return difflib.SequenceMatcher(a=a_kinds, b=b_kinds).ratio()
 
 
 
