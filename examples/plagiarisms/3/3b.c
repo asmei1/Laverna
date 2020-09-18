@@ -4,6 +4,7 @@
 #include <ctype.h>
 int main()
 {
+
     unsigned char s[1000];
     unsigned char kodzik[1000];
     int i,szyfr;

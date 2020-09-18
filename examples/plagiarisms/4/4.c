@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+//Comment
 int main() {
 	int tab[10][10],i=0,j=0,k=0,spr=0,sw=0,sk=0,licz=0;
 	printf("podaj macierz: \n");
@@ -13,7 +13,7 @@ int main() {
 			}
 		}
 	}
-	//sprawdzenie najwiekszej wartoœci przystej w macierzy
+	//sprawdzenie najwiekszej wartoï¿½ci przystej w macierzy
 	int max=tab[0][0];
 	for(i=0;i<10;i++){
 		for(j=0;j<10;j++){
@@ -23,7 +23,7 @@ int main() {
 			}
 		}
 	}
-	//sprawdzenie czy jest co pokazaæ
+	//sprawdzenie czy jest co pokazaï¿½
 	if(licz==0){
 		printf("Nothing to show");
 	}

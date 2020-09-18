@@ -21,10 +21,10 @@ int print_point(struct point_t p);
 int get_digit_at(const int32_t, int);
 
 int main(void) {
-  
+
     double a;
 
-                    
+
     my_printf("Tekst zachety: ");
 
     my_scanf("%f ", &a);
@@ -49,7 +49,7 @@ int my_printf(char* format, ...){
     if(*(format+i) == '%'){
 
       switch(*(format+i+1)){
-        
+
         //string with \x0 as terminator
         case 's':
           count += print_string(va_arg(valist, char*));
@@ -73,7 +73,7 @@ int my_printf(char* format, ...){
 
       }
 
-      
+
       i += 2;
       continue;
     }
@@ -84,7 +84,7 @@ int my_printf(char* format, ...){
 
     i++;
   }
-  
+
   va_end(valist);
   return count;
 }
@@ -131,7 +131,7 @@ int my_scanf(char* format, ...){
         char c;
         int is_valid = 1,
             is_read = 0; //is set only if some characters was valid
-        
+
         *nr = 0;
         int is_neg = 0;
 
@@ -146,7 +146,7 @@ int my_scanf(char* format, ...){
 
           if(c == '-' && *nr == 0){
             is_neg = 1;
-            continue;  
+            continue;
           }
 
           if(!isdigit(c))
@@ -171,7 +171,7 @@ int my_scanf(char* format, ...){
 
         while(isspace(c = getchar()));
         ungetc(c, stdin);
-        
+
         *nr = 0;
         int is_neg = 0, //is number negative
             f_point = 0, //is floating point matched
@@ -187,7 +187,7 @@ int my_scanf(char* format, ...){
 
           if(c == '-' && *nr == 0){
             is_neg = 1;
-            continue;  
+            continue;
           }
 
           if(c == '.'){
@@ -223,7 +223,7 @@ int my_scanf(char* format, ...){
             is_valid = 1;
 
         char c;
-        
+
         while(isspace(c = getchar()));
 
         nr = 0;
@@ -240,7 +240,7 @@ int my_scanf(char* format, ...){
 
           if(c == '-' && nr == 0){
             is_neg = 1;
-            continue;  
+            continue;
           }
 
           if(!isdigit(c))
@@ -269,7 +269,7 @@ int my_scanf(char* format, ...){
 
           if(c == '-' && nr == 0){
             is_neg = 1;
-            continue;  
+            continue;
           }
 
           if(!isdigit(c))
@@ -298,7 +298,7 @@ int my_scanf(char* format, ...){
 
     i++;
   }
-  
+
   va_end(valist);
   return count;
 }
@@ -328,7 +328,7 @@ int print_i(int32_t arg){
 }
 
 int print_f(double arg){
-  
+
   int i_part, count = 0;
 
   if(arg < 0){
