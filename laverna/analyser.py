@@ -1,3 +1,5 @@
+import itertools
+
 from clang.cindex import *
 import difflib
 
@@ -107,7 +109,6 @@ class CodeSimilarityTool:
         """
         return list(filter(lambda c: c not in kinds_to_filter, cursors))
 
-
     def __get_flatten_cursors_kinds__(self, cursor, code_unit, depth=0):
         # print('-' * depth, 'L:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
         # if depth <= 3:
@@ -128,8 +129,9 @@ class CodeSimilarityTool:
         #                           or (cursor.kind in {CursorKind.FUNCTION_DECL,
         #                                               CursorKind.STRUCT_DECL} and cursor.is_definition())]
         # Remove declaration nodes from tree on top level to simplifying ratio computing
+        # Structures and enums are skipped
         global_cursors = [cursor for cursor in code_unit.cursors
-                          if cursor.kind not in {CursorKind.FUNCTION_DECL, CursorKind.STRUCT_DECL}
+                          if cursor.kind not in {CursorKind.FUNCTION_DECL, CursorKind.STRUCT_DECL, CursorKind.ENUM_DECL}
                           or (cursor.kind is CursorKind.FUNCTION_DECL and cursor.is_definition())]
 
         # sort by displayname beacuse mangled_name could have too small information
@@ -148,7 +150,7 @@ class CodeSimilarityTool:
 
     def simple_similarity_ratio(self, code_unit_a, code_unit_b):
         """
-            Only for simple code. Vulnerable for dividing code into separate, multiple functions
+            Vulnerable if codes are divided into separate, multiple functions with different names
         """
         a_tags = self.__prepare_cursors_from_code_unit__(code_unit_a)
         b_tags = self.__prepare_cursors_from_code_unit__(code_unit_b)
@@ -156,51 +158,96 @@ class CodeSimilarityTool:
         ab_ratio = difflib.SequenceMatcher(a=a_tags, b=b_tags).ratio()
         ba_ratio = difflib.SequenceMatcher(a=b_tags, b=a_tags).ratio()
 
-        if ab_ratio != ba_ratio: print("MAX ", max(ab_ratio, ba_ratio), "AB", ab_ratio, "BA", ba_ratio)
         return max(ab_ratio, ba_ratio)
 
-    def functions_similarity_ratio(self, code_unit_a, code_unit_b):
+    def mutual_func_similarity_ratio(self, code_unit_a, code_unit_b, plagiarisms_ratio=0):
         temp_cursors_a = self.__prepare_top_level_cursors__(code_unit_a)
         temp_cursors_b = self.__prepare_top_level_cursors__(code_unit_b)
 
+        # filter to get only mutual functions from compared code units
         get_mutual = lambda a, b: [ca for ca in a if ca.displayname in [cb.displayname for cb in b]]
-        get_diff = lambda a, b: [ca for ca in a if ca.displayname not in [cb.displayname for cb in b]]
+        # get_diff = lambda a, b: [ca for ca in a if ca.displayname not in [cb.displayname for cb in b]]
 
-        global_cursors_a = get_mutual(temp_cursors_a, temp_cursors_b) + get_diff(temp_cursors_a, temp_cursors_b)
-        global_cursors_b = get_mutual(temp_cursors_b, temp_cursors_a) + get_diff(temp_cursors_b, temp_cursors_a)
+        global_cursors_a = get_mutual(temp_cursors_a, temp_cursors_b)  # + get_diff(temp_cursors_a, temp_cursors_b)
+        global_cursors_b = get_mutual(temp_cursors_b, temp_cursors_a)  # + get_diff(temp_cursors_b, temp_cursors_a)
 
         # print([c.displayname for c in global_cursors_a])
         # print([c.displayname for c in global_cursors_b])
 
         ratios = []
         for i in range(min(len(global_cursors_a), len(global_cursors_b))):
-            kinds_a = self.__cursor_kind_list_filter__(self.__get_flatten_cursors_kinds__(global_cursors_a[i], code_unit_a), [CursorKind.COMPOUND_STMT])
-            kinds_b = self.__cursor_kind_list_filter__(self.__get_flatten_cursors_kinds__(global_cursors_b[i], code_unit_b), [CursorKind.COMPOUND_STMT])
+            kinds_a = self.__cursor_kind_list_filter__(
+                self.__get_flatten_cursors_kinds__(global_cursors_a[i], code_unit_a), [CursorKind.COMPOUND_STMT])
+            kinds_b = self.__cursor_kind_list_filter__(
+                self.__get_flatten_cursors_kinds__(global_cursors_b[i], code_unit_b), [CursorKind.COMPOUND_STMT])
 
-            ab_ratio = difflib.SequenceMatcher(a=kinds_a,b=kinds_b).ratio()
-            ba_ratio = difflib.SequenceMatcher(a=kinds_b,b=kinds_a).ratio()
+            ab_ratio = difflib.SequenceMatcher(a=kinds_a, b=kinds_b).ratio()
+            ba_ratio = difflib.SequenceMatcher(a=kinds_b, b=kinds_a).ratio()
 
             ratios.append([max(ab_ratio, ba_ratio), global_cursors_a[i].mangled_name])
 
+        ratios = list(filter(lambda r: r[0] > plagiarisms_ratio, ratios))
+        ratios.sort(key=lambda r: r[0], reverse=True)
+
+        if len(ratios) is 0:
+            return 0, ratios
+        else:
+            return sum([i[0] for i in ratios]) / len(ratios), ratios
+
+    def cross_func_similarity_ratio(self, code_unit_a, code_unit_b, plagiarisms_ratio=0):
+        global_cursors_a = self.__prepare_top_level_cursors__(code_unit_a)
+        global_cursors_b = self.__prepare_top_level_cursors__(code_unit_b)
+
+        all_combinations = list(itertools.product(global_cursors_a, global_cursors_b))
+
+        # print([c[0].location.file.name+c[0].mangled_name+':'+c[1].location.file.name+c[1].mangled_name for c in all_combinations])
+        ratios = []
+        for i in range(len(all_combinations)):
+            kinds_a = self.__cursor_kind_list_filter__(
+                self.__get_flatten_cursors_kinds__(all_combinations[i][0], code_unit_a), [CursorKind.COMPOUND_STMT])
+            kinds_b = self.__cursor_kind_list_filter__(
+                self.__get_flatten_cursors_kinds__(all_combinations[i][1], code_unit_b), [CursorKind.COMPOUND_STMT])
+
+            ab_ratio = difflib.SequenceMatcher(a=kinds_a, b=kinds_b).ratio()
+            ba_ratio = difflib.SequenceMatcher(a=kinds_b, b=kinds_a).ratio()
+
+            ratios.append([max(ab_ratio, ba_ratio),
+                           [[all_combinations[i][0].location.file.name, all_combinations[i][0].mangled_name],
+                            [all_combinations[i][1].location.file.name, all_combinations[i][1].mangled_name]]
+                           ])
+
+        ratios = list(filter(lambda r: r[0] > plagiarisms_ratio, ratios))
+        ratios.sort(key=lambda r: r[0], reverse=True)
+
+        if len(ratios) is 0:
+            return 0, ratios
+        else:
+            return sum([i[0] for i in ratios]) / len(ratios), ratios
+
+    def batch_similarity_ratio(self, code_units, method="simple", plagiarisms_ratio=0):
+        all_combinations = list(itertools.combinations(code_units, 2))
+        ratios = []
+
+        if method is "simple":
+            for pair in all_combinations:
+                ratios.append([self.simple_similarity_ratio(pair[0], pair[1]), pair[0].translation_units[0].spelling,
+                               pair[1].translation_units[0].spelling])
+        elif method is "functions":
+            for pair in all_combinations:
+                for r in self.mutual_func_similarity_ratio(pair[0], pair[1]):
+                    ratios.append(r)
+        elif method is "cross":
+            for pair in all_combinations:
+                for r in self.cross_func_similarity_ratio(pair[0], pair[1]):
+                    ratios.append(r)
+        else:
+            raise Exception("Wrong method")
+
+        ratios = list(filter(lambda r: r[0] > plagiarisms_ratio, ratios))
+        ratios.sort(key=lambda r: r[0], reverse=True)
         return ratios
 
-
-    def complex_similarity_ratio(self, code_unit_a, code_unit_b):
-        r = self.functions_similarity_ratio(code_unit_a, code_unit_b)
-        return sum([i[0] for i in r])/len(r)
-
-
-
-
-
-
-
-
-
-
-
-
-'''
+    '''
     def __get_flatten_cursors_kinds__(self, cursor, code_unit, depth=0, unwind=False):
         # print('-' * depth, 'L:', cursor.location.line, 'type:', cursor.kind, 'name:', cursor.displayname, )
         # if depth <= 3:

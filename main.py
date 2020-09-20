@@ -1,17 +1,21 @@
+import time
+
 from laverna.analyser import CodeAnalyser, CodeSimilarityTool
 from laverna.code_unit import CodeUnit
 
-
 # testing usage
 anl = CodeSimilarityTool()
+
 
 def compute_ab_and_ba_sim(title, code_unit_a, code_unit_b):
     ratio = anl.simple_similarity_ratio(code_unit_a, code_unit_b)
     print(title, ratio)
 
+
 def compute_ab_and_ba_sim_fun(title, code_unit_a, code_unit_b):
-    ratio = anl.complex_similarity_ratio(code_unit_a, code_unit_b)
+    ratio = anl.mutual_func_similarity_ratio(code_unit_a, code_unit_b)
     print(title, ratio)
+
 
 def test_all():
     cu_1_a = CodeUnit(["examples/plagiarisms/1/1.c"])
@@ -60,8 +64,6 @@ def test_all():
     cu_13_b = CodeUnit(["examples/plagiarisms/13/B/11.8.c", "examples/plagiarisms/13/B/linked_list.h",
                         "examples/plagiarisms/13/B/linked_list.c"])
 
-
-
     compute_ab_and_ba_sim("Example 1:", cu_1_a, cu_1_b)
     compute_ab_and_ba_sim("Example 2:", cu_2_a, cu_2_b)
     compute_ab_and_ba_sim("Example 3:", cu_3_a, cu_3_b)
@@ -93,21 +95,90 @@ def test_all():
     compute_ab_and_ba_sim_fun("Wrong sample:", cu_13_a, cu_12_b)
     compute_ab_and_ba_sim_fun("Wrong sample:", cu_13_a, cu_11_b)
 
+    # compute_ab_and_ba_sim_fun("Example 9:", cu_9_a, cu_9_b)
+
+    # start_time = time.time()
+    # anl.batch([
+    #     cu_1_a,
+    #     cu_1_b,
+    #     cu_2_a,
+    #     cu_2_b,
+    #     cu_3_a,
+    #     cu_3_b,
+    #     cu_4_a,
+    #     cu_4_b,
+    #     cu_5_a,
+    #     cu_5_b,
+    #     cu_6_a,
+    #     cu_6_b,
+    #     cu_8_a,
+    #     cu_8_b,
+    #     cu_9_a,
+    #     cu_9_b,
+    #     cu_10_a,
+    #     cu_10_b,
+    #     cu_11_a,
+    #     cu_11_b,
+    #     cu_12_a,
+    #     cu_12_b,
+    #     cu_13_a,
+    #     cu_13_b
+    #                              ])
+    # print("--- %s seconds ---" % (time.time() - start_time))
+    #
+    # start_time = time.time()
+    # anl.batch2([
+    #     cu_1_a,
+    #     cu_1_b,
+    #     cu_2_a,
+    #     cu_2_b,
+    #     cu_3_a,
+    #     cu_3_b,
+    #     cu_4_a,
+    #     cu_4_b,
+    #     cu_5_a,
+    #     cu_5_b,
+    #     cu_6_a,
+    #     cu_6_b,
+    #     cu_8_a,
+    #     cu_8_b,
+    #     cu_9_a,
+    #     cu_9_b,
+    #     cu_10_a,
+    #     cu_10_b,
+    #     cu_11_a,
+    #     cu_11_b,
+    #     cu_12_a,
+    #     cu_12_b,
+    #     cu_13_a,
+    #     cu_13_b
+    #                              ])
+    # print("--- %s seconds ---" % (time.time() - start_time))
+
+
 test_all()
-
-
-
 
 # code_unit_a = CodeUnit(["examples/main.c"])
 # anl.simple_similarity_ratio(code_unit_a, code_unit_a)
 # #
 # cu_6_a = CodeUnit(["examples/plagiarisms/6/6.c"])
 # cu_6_b = CodeUnit(["examples/plagiarisms/6/6b.c"])
-# anl.functions_similarity_ratio(cu_6_a, cu_6_b)
+# start_time = time.time()
+# anl.simple_similarity_ratio(cu_6_a, cu_6_b)
+# print("--- %s seconds ---" % (time.time() - start_time))
+# start_time = time.time()
+# anl.mutual_func_similarity_ratio(cu_6_a, cu_6_b)
+# print("--- %s seconds ---" % (time.time() - start_time))
+# start_time = time.time()
+# anl.cross_func_similarity_ratio(cu_6_a, cu_6_b, 0.7)
+# print("--- %s seconds ---" % (time.time() - start_time))
+
 # compute_ab_and_ba_sim("Example 6:", cu_6_a, cu_6_b)
-#
+
 # cu_13_a = CodeUnit(["examples/plagiarisms/13/A/main.c", "examples/plagiarisms/13/A/linked_list.h",
 #                     "examples/plagiarisms/13/A/linked_list.c"])
 # cu_13_b = CodeUnit(["examples/plagiarisms/13/B/11.8.c", "examples/plagiarisms/13/B/linked_list.h",
 #                     "examples/plagiarisms/13/B/linked_list.c"])
-# compute_ab_and_ba_sim_fun("Example 13:", cu_13_a, cu_13_b)
+#
+# anl.functions_similarity_ratio(cu_13_a, cu_13_b)
+# anl.cross_functions_similarity_ratio(cu_13_a, cu_13_b)
